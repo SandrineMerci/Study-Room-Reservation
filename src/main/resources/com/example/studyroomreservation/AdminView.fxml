@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.layout.StackPane?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.studyroomreservation.controller.AdminController"
+            styleClass="main-container"
+            stylesheets="@styles.css">
+
+    <top>
+        <VBox style="-fx-background-color: white; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 2);">
+            <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 15 20;">
+                <StackPane>
+                    <Rectangle width="36" height="36" arcWidth="8" arcHeight="8" fill="#ef233c"/>
+                    <Text text="A" style="-fx-fill: white; -fx-font-size: 18; -fx-font-weight: bold;"/>
+                </StackPane>
+                <VBox>
+                    <Text text="Admin Control Panel" styleClass="page-title"/>
+                    <Label fx:id="statusLabel" text="Welcome, Admin" styleClass="subtitle"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="LOGOUT" onAction="#logout" styleClass="button-danger"/>
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <TabPane style="-fx-background-color: transparent; -fx-padding: 20;">
+            <Tab text="Room Management" closable="false">
+                <VBox spacing="15" style="-fx-padding: 20;">
+                    <HBox spacing="20" VBox.vgrow="ALWAYS">
+                        <VBox spacing="12" prefWidth="300" styleClass="card">
+                            <Text text="Create New Room" styleClass="section-title"/>
+                            <TextField fx:id="roomCodeField" promptText="Room Code (e.g., R101)"/>
+                            <TextField fx:id="capacityField" promptText="Capacity (e.g., 4)"/>
+                            <Button text="Create Room" onAction="#addRoom" styleClass="button-primary"/>
+                        </VBox>
+                        <VBox spacing="12" HBox.hgrow="ALWAYS" styleClass="card">
+                            <Text text="Existing Rooms" styleClass="section-title"/>
+                            <ListView fx:id="roomList" VBox.vgrow="ALWAYS" prefHeight="300"/>
+                            <Button text="Delete Selected Room" onAction="#deleteRoom" styleClass="button-danger"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </Tab>
+            <Tab text="Time Slot Management" closable="false">
+                <VBox spacing="15" style="-fx-padding: 20;">
+                    <HBox spacing="20" VBox.vgrow="ALWAYS">
+                        <VBox spacing="12" prefWidth="300" styleClass="card">
+                            <Text text="Select Room" styleClass="section-title"/>
+                            <ChoiceBox fx:id="roomChoice" prefWidth="250"/>
+                            <Text text="Add Time Slot" styleClass="label-header"/>
+                            <TextField fx:id="timeSlotField" promptText="e.g., 09:00-10:00"/>
+                            <Button text="Add Time Slot" onAction="#addTimeSlot" styleClass="button-success"/>
+                        </VBox>
+                        <VBox spacing="12" HBox.hgrow="ALWAYS" styleClass="card">
+                            <Text text="Time Slots" styleClass="section-title"/>
+                            <ListView fx:id="timeSlotList" VBox.vgrow="ALWAYS" prefHeight="300"/>
+                            <Button text="Remove Selected Slot" onAction="#removeTimeSlot" styleClass="button-warning"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </Tab>
+            <Tab text="Booking Management" closable="false">
+                <VBox spacing="15" style="-fx-padding: 20;">
+                    <HBox spacing="20" VBox.vgrow="ALWAYS">
+                        <VBox spacing="12" prefWidth="280" styleClass="card">
+                            <Text text="Statistics" styleClass="section-title"/>
+                            <VBox spacing="8" style="-fx-padding: 10;">
+                                <Label fx:id="totalRoomsLabel" text="Total Rooms: 0" styleClass="label-bold"/>
+                                <Label fx:id="totalBookingsLabel" text="Total Bookings: 0" styleClass="label-bold"/>
+                            </VBox>
+                            <Separator/>
+                            <Button text="Refresh Data" onAction="#refreshData" styleClass="button-outline"/>
+                        </VBox>
+                        <VBox spacing="12" HBox.hgrow="ALWAYS" styleClass="card">
+                            <Text text="All Bookings" styleClass="section-title"/>
+                            <ListView fx:id="bookingList" VBox.vgrow="ALWAYS" prefHeight="350"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </Tab>
+        </TabPane>
+    </center>
+</BorderPane>

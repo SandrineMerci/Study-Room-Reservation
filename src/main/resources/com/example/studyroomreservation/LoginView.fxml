@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.layout.StackPane?>
+
+<VBox alignment="CENTER" spacing="20"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.example.studyroomreservation.controller.LoginController"
+      styleClass="main-container"
+      stylesheets="@styles.css">
+
+    <VBox spacing="20" maxWidth="400" styleClass="card">
+
+        <VBox alignment="CENTER" spacing="10">
+            <StackPane>
+                <Circle radius="40" fill="#4361ee"/>
+                <Text text="RS" style="-fx-fill: white; -fx-font-size: 28; -fx-font-weight: bold;"/>
+            </StackPane>
+            <Text text="Study Room Reservation" styleClass="page-title"/>
+            <Text text="Book your perfect study space" styleClass="subtitle"/>
+        </VBox>
+
+        <VBox spacing="12">
+            <TextField fx:id="nameField" promptText="Full Name"/>
+            <TextField fx:id="idField" promptText="Student / Admin ID"/>
+        </VBox>
+
+        <HBox spacing="15" alignment="CENTER">
+            <Button text="LOGIN" onAction="#login" styleClass="button-primary"/>
+            <Button text="REGISTER" onAction="#register" styleClass="button-outline"/>
+        </HBox>
+
+        <Label fx:id="messageLabel" wrapText="true" alignment="CENTER"/>
+
+        <VBox spacing="5" style="-fx-border-color: #e2e8f0; -fx-border-width: 1; -fx-border-radius: 8; -fx-padding: 10;">
+            <Text text="Demo Credentials" style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-fill: #1e293b;"/>
+            <Text text="Admin: Name=Admin, ID=A001" style="-fx-font-size: 10px; -fx-fill: #718096;"/>
+            <Text text="Student: Register with any ID" style="-fx-font-size: 10px; -fx-fill: #718096;"/>
+        </VBox>
+    </VBox>
+</VBox>
