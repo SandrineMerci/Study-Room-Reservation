@@ -31,22 +31,29 @@
 
     <center>
         <HBox spacing="20" style="-fx-padding: 20;" VBox.vgrow="ALWAYS">
-            <VBox spacing="15" prefWidth="380" styleClass="card">
+            <VBox spacing="15" prefWidth="420" styleClass="card">
                 <Text text="Make a Booking" styleClass="section-title"/>
-                <Text text="Select your preferred room and time slot" styleClass="subtitle"/>
+                <Text text="Select room, available date and time slot" styleClass="subtitle"/>
                 <Separator/>
                 <VBox spacing="12">
                     <Text text="Study Room" styleClass="label-header"/>
                     <ChoiceBox fx:id="roomChoice" prefWidth="320"/>
+
+                    <Text text="Available Date" styleClass="label-header"/>
+                    <ChoiceBox fx:id="dateChoice" prefWidth="320"/>
+
                     <Text text="Time Slot" styleClass="label-header"/>
                     <ChoiceBox fx:id="timeChoice" prefWidth="320"/>
+
                     <VBox spacing="5" style="-fx-background-color: #f8fafc; -fx-padding: 12; -fx-background-radius: 8;">
                         <Label fx:id="roomDetailsLabel" text="Room: Not selected" style="-fx-font-weight: 600;"/>
                         <Label fx:id="availableSeatsLabel" text="Available seats: -" style="-fx-text-fill: #10b981; -fx-font-weight: 600;"/>
                     </VBox>
+
                     <Button text="Confirm Booking" onAction="#bookRoom" styleClass="button-primary"/>
                 </VBox>
             </VBox>
+
             <VBox spacing="15" HBox.hgrow="ALWAYS" styleClass="card">
                 <Text text="My Bookings" styleClass="section-title"/>
                 <Text text="Your upcoming room reservations" styleClass="subtitle"/>
@@ -55,7 +62,7 @@
                 <Button text="Cancel Selected Booking" onAction="#cancelBooking" styleClass="button-danger"/>
                 <HBox alignment="CENTER" spacing="10" style="-fx-padding: 10 0 0 0;">
                     <Text text="Note:" style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-fill: #64748b;"/>
-                    <Text text="Book early to secure your spot" style="-fx-font-size: 11px; -fx-fill: #64748b;"/>
+                    <Text text="Only dates set by admin are available for booking" style="-fx-font-size: 11px; -fx-fill: #64748b;"/>
                 </HBox>
             </VBox>
         </HBox>

@@ -48,6 +48,7 @@
                     </HBox>
                 </VBox>
             </Tab>
+
             <Tab text="Time Slot Management" closable="false">
                 <VBox spacing="15" style="-fx-padding: 20;">
                     <HBox spacing="20" VBox.vgrow="ALWAYS">
@@ -66,6 +67,26 @@
                     </HBox>
                 </VBox>
             </Tab>
+
+            <Tab text="Date Availability" closable="false">
+                <VBox spacing="15" style="-fx-padding: 20;">
+                    <HBox spacing="20" VBox.vgrow="ALWAYS">
+                        <VBox spacing="12" prefWidth="300" styleClass="card">
+                            <Text text="Select Room" styleClass="section-title"/>
+                            <ChoiceBox fx:id="roomChoice" prefWidth="250"/>
+                            <Text text="Add Available Date" styleClass="label-header"/>
+                            <DatePicker fx:id="datePicker" prefWidth="250" promptText="Select date"/>
+                            <Button text="Add Date" onAction="#addAvailableDate" styleClass="button-success"/>
+                        </VBox>
+                        <VBox spacing="12" HBox.hgrow="ALWAYS" styleClass="card">
+                            <Text text="Available Dates" styleClass="section-title"/>
+                            <ListView fx:id="availableDatesList" VBox.vgrow="ALWAYS" prefHeight="300"/>
+                            <Button text="Remove Selected Date" onAction="#removeAvailableDate" styleClass="button-warning"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </Tab>
+
             <Tab text="Booking Management" closable="false">
                 <VBox spacing="15" style="-fx-padding: 20;">
                     <HBox spacing="20" VBox.vgrow="ALWAYS">

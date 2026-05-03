@@ -8,7 +8,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -17,10 +20,12 @@ public class AdminController {
     @FXML private TextField roomCodeField;
     @FXML private TextField capacityField;
     @FXML private TextField timeSlotField;
+    @FXML private DatePicker datePicker;
     @FXML private ChoiceBox<StudyRoom> roomChoice;
     @FXML private ListView<String> bookingList;
     @FXML private ListView<String> roomList;
     @FXML private ListView<String> timeSlotList;
+    @FXML private ListView<String> availableDatesList;
     @FXML private Label statusLabel;
     @FXML private Label totalRoomsLabel;
     @FXML private Label totalBookingsLabel;
@@ -36,9 +41,33 @@ public class AdminController {
                 (obs, old, newVal) -> {
                     if (newVal != null) {
                         refreshTimeSlotList(newVal);
+                        refreshAvailableDatesList(newVal);
                     }
                 }
         );
+
+        // Configure date picker format
+        datePicker.setConverter(new StringConverter<LocalDate>() {
+            private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+            @Override
+            public String toString(LocalDate date) {
+                return date != null ? formatter.format(date) : "";
+            }
+
+            @Override
+            public LocalDate fromString(String string) {
+                return string != null && !string.isEmpty() ? LocalDate.parse(string, formatter) : null;
+            }
+        });
+
+        // Don't allow past dates for availability
+        datePicker.setDayCellFactory(picker -> new DateCell() {
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+                setDisable(empty || date.isBefore(LocalDate.now()));
+            }
+        });
     }
 
     public void setCurrentAdmin(Admin admin) {
@@ -57,7 +86,7 @@ public class AdminController {
         Platform.runLater(() -> {
             roomList.getItems().clear();
             if (Storage.rooms.isEmpty()) {
-                roomList.getItems().add("📭 No rooms available");
+                roomList.getItems().add("No rooms available");
                 return;
             }
 
@@ -86,8 +115,22 @@ public class AdminController {
             }
 
             for (String slot : room.getTimeSlots()) {
-                int available = room.getAvailableSeats(slot);
-                timeSlotList.getItems().add(slot + " | Available: " + available + "/" + room.getCapacity());
+                timeSlotList.getItems().add(slot);
+            }
+        });
+    }
+
+    private void refreshAvailableDatesList(StudyRoom room) {
+        Platform.runLater(() -> {
+            availableDatesList.getItems().clear();
+            if (room.getAvailableDates().isEmpty()) {
+                availableDatesList.getItems().add("No available dates set");
+                return;
+            }
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd (EEEE)");
+            for (LocalDate date : room.getAvailableDates()) {
+                availableDatesList.getItems().add(date.format(formatter));
             }
         });
     }
@@ -133,7 +176,7 @@ public class AdminController {
             refreshAllData();
             roomCodeField.clear();
             capacityField.clear();
-            updateStatus("✓ Room " + code + " created successfully!");
+            updateStatus("Room " + code + " created successfully!");
 
         } catch (NumberFormatException e) {
             showError("Please enter a valid number for capacity");
@@ -167,10 +210,71 @@ public class AdminController {
 
             refreshTimeSlotList(room);
             timeSlotField.clear();
-            updateStatus("✓ Time slot added: " + slot);
+            updateStatus("Time slot added: " + slot);
 
         } catch (Exception e) {
             showError(e.getMessage());
+        }
+    }
+
+    @FXML
+    public void addAvailableDate() {
+        try {
+            StudyRoom room = roomChoice.getValue();
+            if (room == null) {
+                showError("Select a room first");
+                return;
+            }
+
+            LocalDate date = datePicker.getValue();
+            if (date == null) {
+                showError("Select a date");
+                return;
+            }
+
+            if (room.isDateAvailable(date)) {
+                showError("Date already available!");
+                return;
+            }
+
+            room.addAvailableDate(date);
+            Storage.saveRooms();
+            refreshAvailableDatesList(room);
+            updateStatus("Date added: " + date.toString());
+            datePicker.setValue(null);
+
+        } catch (Exception e) {
+            showError(e.getMessage());
+        }
+    }
+
+    @FXML
+    public void removeAvailableDate() {
+        StudyRoom room = roomChoice.getValue();
+        if (room == null) {
+            showError("Select a room first");
+            return;
+        }
+
+        String selected = availableDatesList.getSelectionModel().getSelectedItem();
+        if (selected == null || selected.equals("No available dates set")) {
+            showError("Select a date to remove");
+            return;
+        }
+
+        // Extract date from string (format: "2024-01-01 (Monday)")
+        String dateStr = selected.split(" \\(")[0];
+        LocalDate date = LocalDate.parse(dateStr);
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Confirm Delete");
+        confirm.setContentText("Remove date '" + date.toString() + "'?\nThis will also delete all bookings for this date.");
+
+        if (confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
+            room.removeAvailableDate(date);
+            Storage.saveRooms();
+            refreshAvailableDatesList(room);
+            updateStatus("Date removed: " + date.toString());
         }
     }
 
@@ -189,9 +293,13 @@ public class AdminController {
                 }
 
                 for (Map.Entry<String, List<Booking>> entry : r.getBookingMap().entrySet()) {
+                    String[] keyParts = entry.getKey().split("\\|");
+                    String date = keyParts[0];
+                    String timeSlot = keyParts[1];
+
                     for (Booking b : entry.getValue()) {
                         bookingList.getItems().add(
-                                "  ⏰ " + entry.getKey() + " | 👤 " + b.getStudent().getName() +
+                                "  Date: " + date + " | Time: " + timeSlot + " | Student: " + b.getStudent().getName() +
                                         " (" + b.getStudent().getId() + ")"
                         );
                         total++;
@@ -200,10 +308,10 @@ public class AdminController {
             }
 
             if (total == 0) {
-                bookingList.getItems().add("📭 No bookings found");
+                bookingList.getItems().add("No bookings found");
             } else {
                 bookingList.getItems().add(0, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-                bookingList.getItems().add(0, "📊 TOTAL BOOKINGS: " + total);
+                bookingList.getItems().add(0, "TOTAL BOOKINGS: " + total);
             }
         });
     }
@@ -212,7 +320,7 @@ public class AdminController {
     public void refreshData() {
         Storage.loadAllData();
         refreshAllData();
-        updateStatus("✓ Data refreshed from storage");
+        updateStatus("Data refreshed from storage");
     }
 
     @FXML
@@ -226,13 +334,13 @@ public class AdminController {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Confirm Delete");
         confirm.setHeaderText("Delete Room: " + room.getRoomCode());
-        confirm.setContentText("This will delete all time slots and bookings for this room.\n\nAre you sure?");
+        confirm.setContentText("This will delete all time slots, available dates, and bookings for this room.\n\nAre you sure?");
 
         if (confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
             Storage.rooms.remove(room);
             Storage.saveRooms();
             refreshAllData();
-            updateStatus("✓ Room deleted: " + room.getRoomCode());
+            updateStatus("Room deleted: " + room.getRoomCode());
         }
     }
 
@@ -250,7 +358,7 @@ public class AdminController {
             return;
         }
 
-        String slot = selected.split(" \\| ")[0];
+        String slot = selected;
 
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Confirm Delete");
@@ -260,14 +368,13 @@ public class AdminController {
             room.removeTimeSlot(slot);
             Storage.saveRooms();
             refreshTimeSlotList(room);
-            updateStatus("✓ Time slot removed: " + slot);
+            updateStatus("Time slot removed: " + slot);
         }
     }
 
     private void updateStatus(String message) {
         Platform.runLater(() -> {
             statusLabel.setText(message);
-            // Auto-clear after 3 seconds
             new Thread(() -> {
                 try { Thread.sleep(3000); } catch (InterruptedException e) {}
                 Platform.runLater(() -> {
@@ -281,7 +388,7 @@ public class AdminController {
 
     private void showError(String message) {
         Platform.runLater(() -> {
-            statusLabel.setText("❌ " + message);
+            statusLabel.setText("Error: " + message);
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
             alert.setHeaderText(null);
@@ -291,7 +398,7 @@ public class AdminController {
             new Thread(() -> {
                 try { Thread.sleep(3000); } catch (InterruptedException e) {}
                 Platform.runLater(() -> {
-                    if (statusLabel.getText().equals("❌ " + message)) {
+                    if (statusLabel.getText().equals("Error: " + message)) {
                         statusLabel.setText("Ready");
                     }
                 });
@@ -303,32 +410,21 @@ public class AdminController {
     public void logout() {
         Storage.saveAllData();
 
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("Logout");
-        confirm.setHeaderText(null);
-        confirm.setContentText("Are you sure you want to logout?");
-
-        if (confirm.showAndWait().orElse(ButtonType.CANCEL) == ButtonType.OK) {
-            try {
-                FXMLLoader loader = new FXMLLoader(
-                        getClass().getResource("/com/example/studyroomreservation/LoginView.fxml")
-                );
-                Stage stage = (Stage) statusLabel.getScene().getWindow();
-                Scene scene = new Scene(loader.load());
-
-                // Load and apply CSS
-                String css = getClass().getResource("/com/example/studyroomreservation/styles.css").toExternalForm();
-                if (css != null) {
-                    scene.getStylesheets().add(css);
-                }
-
-                stage.setScene(scene);
-                stage.setTitle("Study Room Reservation System");
-                stage.centerOnScreen();
-
-            } catch (Exception e) {
-                e.printStackTrace();
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/example/studyroomreservation/LoginView.fxml")
+            );
+            Stage stage = (Stage) roomCodeField.getScene().getWindow();
+            Scene scene = new Scene(loader.load());
+            String css = getClass().getResource("/com/example/studyroomreservation/styles.css").toExternalForm();
+            if (css != null) {
+                scene.getStylesheets().add(css);
             }
+            stage.setScene(scene);
+            stage.setTitle("Study Room System");
+            stage.centerOnScreen();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
