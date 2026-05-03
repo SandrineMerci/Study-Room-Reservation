@@ -67,12 +67,6 @@ com.example.studyroomreservation
 * `StudyRoom` → Stores capacity, slots, bookings
 * `Booking` → Represents a reservation
 
-### 🔹 Service Layer
-
-* `AuthService` → Handles login logic
-* `BookingService` → Handles booking operations
-* `Storage` → Handles file persistence
-
 ---
 
 ##  Data Persistence
